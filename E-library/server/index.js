@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 5000;
 // ? MIDDLEWARE
 app.use(
   cors({
-    origin: 'https://cc7165521-4z3h.vercel.app', // allow only your Vercel frontend
+    origin: 'https://cc7165521-ea7j.vercel.app', // allow only your Vercel frontend
     methods: 'GET,POST,PUT,DELETE',
     credentials: true,
   })

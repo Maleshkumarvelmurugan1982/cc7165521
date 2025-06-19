@@ -42,8 +42,8 @@ function BookForm({ initialData = null, onSuccess }) {
 
     const method = initialData ? 'PUT' : 'POST';
     const url = initialData
-      ? `http://localhost:5000/api/books/${initialData._id}`
-      : 'http://localhost:5000/api/books';
+      ? `${import.meta.env.VITE_BACKEND_URL}/api/books/${initialData._id}`
+      : '${import.meta.env.VITE_BACKEND_URL}/api/books';
 
     const body = new FormData();
     Object.entries(form).forEach(([k, v]) => body.append(k, v));

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import BookCard from '../components/BookCard';
 
-const API_URL = 'http://localhost:5000'; // change if your backend port/host differs
+//const API_URL = 'http://localhost:5000'; // change if your backend port/host differs
 
 function Home() {
   const [books, setBooks] = useState([]);
@@ -11,7 +11,7 @@ function Home() {
 
   /* ── fetch all books ─────────────────────────────────────────── */
   useEffect(() => {
-    fetch(`${API_URL}/api/books`)
+    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/books`)
       .then((res) => res.json())
       .then(setBooks)
       .catch(() => toast.error('Failed to fetch books.'));
@@ -35,7 +35,7 @@ function Home() {
     if (!window.confirm('Are you sure?')) return;
 
     try {
-      const res = await fetch(`${API_URL}/api/books/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/books/${id}`, {
         method: 'DELETE',
         headers: { Accept: 'application/json' },
       });
@@ -80,7 +80,7 @@ function Home() {
         formData.append('pdf', pdfFile);
       }
 
-      const res = await fetch(`${API_URL}/api/books/${updatedBook._id}`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/books/${updatedBook._id}`, {
         method: 'PUT',
         body: formData,
         // DO NOT set Content-Type manually!

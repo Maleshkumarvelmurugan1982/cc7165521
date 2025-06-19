@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
-const API_URL = 'http://localhost:5000'; // Change if backend runs elsewhere
+//const API_URL = 'http://localhost:5000'; // Change if backend runs elsewhere
 
 function BookCard({
   book,
@@ -84,7 +84,7 @@ function BookCard({
 
   const handleLikeDislike = async (type) => {
     try {
-      const res = await fetch(`${API_URL}/api/books/${book._id}/${type}`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/books/${book._id}/${type}`, {
         method: 'PUT',
       });
       if (!res.ok) throw new Error();
@@ -143,7 +143,7 @@ function BookCard({
 
         <div className="mt-4 flex gap-6 justify-center">
           <a
-            href={`${API_URL}/api/books/${book._id}/pdf`}
+            href={`${import.meta.env.VITE_BACKEND_URL}/api/books/${book._id}/pdf`}
             target="_blank"
             rel="noopener noreferrer"
             className="relative group flex-1 text-center bg-gradient-to-r from-blue-500 to-blue-700 text-white font-semibold px-6 py-2 rounded-full shadow-lg
@@ -155,7 +155,7 @@ function BookCard({
               transform translate-x-full group-hover:translate-x-0 transition-transform duration-300"></span>
           </a>
           <a
-            href={`${API_URL}/api/books/${book._id}/download`}
+            href={`${import.meta.env.VITE_BACKEND_URL}/api/books/${book._id}/download`}
             className="relative group flex-1 text-center bg-gradient-to-r from-indigo-500 to-indigo-700 text-white font-semibold px-6 py-2 rounded-full shadow-lg
               hover:from-indigo-600 hover:to-indigo-800 transition-all duration-300 ease-in-out
               overflow-hidden"

@@ -11,22 +11,32 @@ const Book = require('./models/Book');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ? MIDDLEWARE
-app.use(
-  cors({
-    origin: 'https://cc7165521-ea7j.vercel.app', // allow only your Vercel frontend
-    methods: 'GET,POST,PUT,DELETE',
-    credentials: true,
-  })
-);
+// ? Flexible CORS to allow all your Vercel frontend URLs starting with cc7165521-
+const allowedOrigins = [
+  /^https:\/\/cc7165521-.*\.vercel\.app$/,
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // allow non-browser requests like Postman
+    if (allowedOrigins.some(regex => regex.test(origin))) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: 'GET,POST,PUT,DELETE',
+  credentials: true,
+}));
+
 app.use(express.json());
 
-// ? Ensure uploads folder exists
+// Ensure uploads folder exists
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 app.use('/uploads', express.static(uploadsDir));
 
-// ? MULTER CONFIG
+// Multer config
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, 'uploads/'),
   filename: (_req, file, cb) => {
@@ -36,7 +46,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// ? DB CONNECTION
+// DB Connection
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log('? Connected to MongoDB'))
@@ -45,10 +55,9 @@ mongoose
     process.exit(1);
   });
 
-// ? ROUTES
+// Routes
 app.get('/', (_req, res) => res.send('?? Book API is live!'));
 
-// Get all books
 app.get('/api/books', async (_req, res) => {
   try {
     const books = await Book.find();
@@ -58,7 +67,6 @@ app.get('/api/books', async (_req, res) => {
   }
 });
 
-// Get one book
 app.get('/api/books/:id', async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
@@ -69,7 +77,6 @@ app.get('/api/books/:id', async (req, res) => {
   }
 });
 
-// Stream PDF
 app.get('/api/books/:id/pdf', async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
@@ -95,7 +102,6 @@ app.get('/api/books/:id/pdf', async (req, res) => {
   }
 });
 
-// Download PDF
 app.get('/api/books/:id/download', async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
@@ -112,7 +118,6 @@ app.get('/api/books/:id/download', async (req, res) => {
   }
 });
 
-// Add new book
 app.post('/api/books', upload.single('pdf'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'PDF file is required' });
@@ -124,7 +129,6 @@ app.post('/api/books', upload.single('pdf'), async (req, res) => {
   }
 });
 
-// Update book
 app.put('/api/books/:id', upload.single('pdf'), async (req, res) => {
   try {
     const update = { ...req.body };
@@ -138,7 +142,6 @@ app.put('/api/books/:id', upload.single('pdf'), async (req, res) => {
   }
 });
 
-// Delete book
 app.delete('/api/books/:id', async (req, res) => {
   try {
     const deleted = await Book.findByIdAndDelete(req.params.id);
@@ -155,7 +158,6 @@ app.delete('/api/books/:id', async (req, res) => {
   }
 });
 
-// Like
 app.put('/api/books/:id/like', async (req, res) => {
   try {
     const book = await Book.findByIdAndUpdate(req.params.id, { $inc: { likes: 1 } }, { new: true });
@@ -166,7 +168,6 @@ app.put('/api/books/:id/like', async (req, res) => {
   }
 });
 
-// Dislike
 app.put('/api/books/:id/dislike', async (req, res) => {
   try {
     const book = await Book.findByIdAndUpdate(req.params.id, { $inc: { dislikes: 1 } }, { new: true });
@@ -177,9 +178,7 @@ app.put('/api/books/:id/dislike', async (req, res) => {
   }
 });
 
-// Fallback route
 app.use((_req, res) => res.status(404).json({ message: 'Route not found' }));
 
-// ? Start server
 app.listen(PORT, () => console.log(`?? Server running at http://localhost:${PORT}`));
 

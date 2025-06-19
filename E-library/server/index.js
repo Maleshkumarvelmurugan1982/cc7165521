@@ -1,28 +1,32 @@
 require('dotenv').config();
-const express  = require('express');
-const cors     = require('cors');
+const express = require('express');
+const cors = require('cors');
 const mongoose = require('mongoose');
-const multer   = require('multer');
-const fs       = require('fs');
-const path     = require('path');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
 
 const Book = require('./models/Book');
 
-const app  = express();
+const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ──────── MIDDLEWARE ────────
-app.use(cors());
+// ? MIDDLEWARE
+app.use(
+  cors({
+    origin: 'https://cc7165521-4z3h.vercel.app', // allow only your Vercel frontend
+    methods: 'GET,POST,PUT,DELETE',
+    credentials: true,
+  })
+);
 app.use(express.json());
 
-// Make sure uploads folder exists
+// ? Ensure uploads folder exists
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
-
-// Serve uploaded PDFs
 app.use('/uploads', express.static(uploadsDir));
 
-// ──────── MULTER CONFIG ────────
+// ? MULTER CONFIG
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, 'uploads/'),
   filename: (_req, file, cb) => {
@@ -32,24 +36,24 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// ──────── DB CONNECTION ────────
+// ? DB CONNECTION
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ Connected to MongoDB'))
+  .then(() => console.log('? Connected to MongoDB'))
   .catch((err) => {
-    console.error('❌ MongoDB connection error:', err);
+    console.error('? MongoDB connection error:', err);
     process.exit(1);
   });
 
-// ──────── ROUTES ────────
-app.get('/', (_req, res) => res.send('📚 Book API is live!'));
+// ? ROUTES
+app.get('/', (_req, res) => res.send('?? Book API is live!'));
 
 // Get all books
 app.get('/api/books', async (_req, res) => {
   try {
     const books = await Book.find();
     res.json(books);
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: 'Error fetching books' });
   }
 });
@@ -65,7 +69,7 @@ app.get('/api/books/:id', async (req, res) => {
   }
 });
 
-// Stream PDF inline
+// Stream PDF
 app.get('/api/books/:id/pdf', async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
@@ -81,13 +85,12 @@ app.get('/api/books/:id/pdf', async (req, res) => {
 
     const stream = fs.createReadStream(filePath);
     stream.on('error', (err) => {
-      console.error('❌ PDF stream error:', err);
+      console.error('? PDF stream error:', err);
       if (!res.headersSent) res.status(500).send('Error streaming PDF');
       else res.destroy();
     });
     stream.pipe(res);
   } catch (err) {
-    console.error('❌ PDF stream catch:', err);
     res.status(400).json({ message: 'Error streaming PDF' });
   }
 });
@@ -135,13 +138,13 @@ app.put('/api/books/:id', upload.single('pdf'), async (req, res) => {
   }
 });
 
-// Delete book and PDF
+// Delete book
 app.delete('/api/books/:id', async (req, res) => {
   try {
     const deleted = await Book.findByIdAndDelete(req.params.id);
     if (deleted) {
       fs.unlink(deleted.pdfPath, (err) => {
-        if (err) console.error('❌ Error deleting file:', err);
+        if (err) console.error('? Error deleting file:', err);
       });
       res.json({ message: 'Book deleted' });
     } else {
@@ -174,8 +177,9 @@ app.put('/api/books/:id/dislike', async (req, res) => {
   }
 });
 
-// Fallback for unknown routes
+// Fallback route
 app.use((_req, res) => res.status(404).json({ message: 'Route not found' }));
 
-// Start the server
-app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+// ? Start server
+app.listen(PORT, () => console.log(`?? Server running at http://localhost:${PORT}`));
+
